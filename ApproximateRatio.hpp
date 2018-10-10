@@ -43,39 +43,6 @@ struct Ratio
     }
 };
 
-/*Ratio approxRatio(double num, const int max)
-{
-    if(num > -1.0 && num < 1.0)
-    {
-        Ratio best = approxRatio(1.0/num, max);
-        return Ratio{best.denominator, best.numerator};
-    }
-    if(num == 0.0 || num == -0.0)
-        return {0, 1};
-
-    bool isNegative = num < 0.0;
-    if(isNegative)
-        num = -num;
-
-    double bestError = std::numeric_limits<double>::max();
-    Ratio best{0, 0};
-    for(int numer = 0; numer <= max; ++numer)
-    {
-        int denom = static_cast<int>(std::round(static_cast<double>(numer) / num));
-        double error = std::abs((static_cast<double>(numer) / static_cast<double>(denom)) - num);
-        if(error < bestError)
-        {
-            bestError = error;
-            best.numerator = numer;
-            best.denominator = denom;
-        }
-    }
-
-    if(isNegative)
-        best.numerator = -best.numerator;
-    return best;
-}*/
-
 void approxRatioThread(double num, const intmax_t min, const intmax_t max, Ratio& best, bool printProgress)
 {
     const bool isNegative = num < 0.0;
@@ -92,26 +59,25 @@ void approxRatioThread(double num, const intmax_t min, const intmax_t max, Ratio
     }
 
     double bestError = std::numeric_limits<double>::infinity();
-    best = {0, 0};
-    for(intmax_t denom = min; denom <= max; ++denom)
+    double bestNumerator = 0;
+    intmax_t bestDenominator = 0;
+    for(intmax_t denom = min; denom < max; ++denom) // NOLINT(cert-flp30-c)
     {
-        const intmax_t numer = static_cast<intmax_t>(std::round(static_cast<double>(denom) * num));
-        const double error = std::abs( num - (static_cast<double>(numer) / static_cast<double>(denom)) );
+        const double numer = std::round(static_cast<double>(denom) * num);
+        const double error = std::abs(num - (numer / static_cast<double>(denom)));
         if(error < bestError)
         {
             bestError = error;
-            best.numerator = numer;
-            best.denominator = denom;
-
-            /*auto ratio = Ratio{best.denominator, best.numerator};
-            std::cout.precision(20);
-            std::cout << ratio << " = " << ratio.value() << "\n\terror = "
-                      << 100*(1/num - double(ratio.numerator)/double(ratio.denominator))*num << "%" << std::endl;*/
+            bestNumerator = numer;
+            bestDenominator = denom;
         }
     }
 
     if(isNegative)
-        best.numerator = -best.numerator;
+        best.numerator = static_cast<intmax_t>(-bestNumerator);
+    else
+        best.numerator = static_cast<intmax_t>(bestNumerator);
+    best.denominator = bestDenominator;
 }
 
 Ratio approxRatio(double num, const intmax_t max)
@@ -137,41 +103,6 @@ Ratio approxRatio(double num, const intmax_t max)
             best = i;
 
     return bests[best];
-//    const bool isNegative = num < 0.0;
-//    if(isNegative)
-//        num = -num;
-//
-//    if(num > 1.0)
-//    {
-//        Ratio best = approxRatio(1.0/num, max);
-//        if(isNegative)
-//            best.denominator = -best.denominator;
-//        return {best.denominator, best.numerator};
-//    }
-//
-//    double bestError = std::numeric_limits<double>::infinity();
-//    Ratio best{0, 0};
-//    for(intmax_t denom = 1; denom <= max; ++denom)
-//    {
-//        const intmax_t numer = static_cast<intmax_t>(std::round(static_cast<double>(denom) * num));
-//        const double error = std::abs( num - (static_cast<double>(numer) / static_cast<double>(denom)) );
-//        if(error < bestError)
-//        {
-//            bestError = error;
-//            best.numerator = numer;
-//            best.denominator = denom;
-//
-//            /*auto ratio = Ratio{best.denominator, best.numerator};
-//            std::cout.precision(20);
-//            std::cout << ratio << " = " << ratio.value() << "\n\terror = "
-//                      << 100*(1/num - double(ratio.numerator)/double(ratio.denominator))*num << "%" << std::endl;*/
-//        }
-//        std::cout << "\r" << static_cast<double>(denom) / static_cast<double>(max) << "%             " << std::flush;
-//    }
-//
-//    if(isNegative)
-//        best.numerator = -best.numerator;
-//    return best;
 }
 
 
