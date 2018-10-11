@@ -36,14 +36,14 @@ struct Ratio
         return static_cast<double>(numerator) / static_cast<double>(denominator);
     }
 
-    friend inline std::ostream& operator<<(std::ostream& os, const Ratio ratio)
+    friend inline std::ostream& operator<<(std::ostream& os, const Ratio& ratio)
     {
         os << ratio.numerator << "/" << ratio.denominator;
         return os;
     }
 };
 
-void approxRatioThread(double num, const intmax_t min, const intmax_t max, Ratio& best, bool printProgress)
+Ratio approxRatio(double num, const intmax_t max)
 {
     const bool isNegative = num < 0.0;
     if(isNegative)
@@ -51,58 +51,39 @@ void approxRatioThread(double num, const intmax_t min, const intmax_t max, Ratio
 
     if(num > 1.0)
     {
-        approxRatioThread(1.0 / num, min, max, best, printProgress);
+        Ratio best = approxRatio(1.0 / num, max);
         if(isNegative)
-            best = {-best.denominator, best.numerator};
-        else
-            best = {best.denominator, best.numerator};
+            return {-best.denominator, best.numerator};
+        return {best.denominator, best.numerator};
     }
 
-    double bestError = std::numeric_limits<double>::infinity();
-    double bestNumerator = 0;
-    intmax_t bestDenominator = 0;
-    for(intmax_t denom = min; denom < max; ++denom) // NOLINT(cert-flp30-c)
+    uintmax_t lowerNumerator = 0;
+    uintmax_t lowerDenominator = 1;
+    uintmax_t upperNumerator = 1;
+    uintmax_t upperDenominator = 1;
+    while(lowerDenominator <= max && upperDenominator <= max)
     {
-        const double numer = std::round(static_cast<double>(denom) * num);
-        const double error = std::abs(num - (numer / static_cast<double>(denom)));
-        if(error < bestError)
+        if(num > static_cast<double>(lowerNumerator + upperNumerator) / static_cast<double>(lowerDenominator + upperDenominator))
         {
-            bestError = error;
-            bestNumerator = numer;
-            bestDenominator = denom;
+            lowerNumerator = lowerNumerator + upperNumerator;
+            lowerDenominator = lowerDenominator + upperDenominator;
+        }
+        else
+        {
+            upperNumerator = lowerNumerator + upperNumerator;
+            upperDenominator = lowerDenominator + upperDenominator;
         }
     }
 
-    if(isNegative)
-        best.numerator = static_cast<intmax_t>(-bestNumerator);
-    else
-        best.numerator = static_cast<intmax_t>(bestNumerator);
-    best.denominator = bestDenominator;
-}
-
-Ratio approxRatio(double num, const intmax_t max)
-{
-    static const int numThreads = std::thread::hardware_concurrency();
-
-    intmax_t quarter = max / numThreads;
-    intmax_t min = 1;
-    Ratio bests[numThreads];
-    std::vector<std::thread> threads;
-    for(int i = 0; i < numThreads - 1; ++i)
+    if(lowerDenominator > max)
     {
-        threads.emplace_back(approxRatioThread, num, min, min + quarter, std::ref(bests[i]), false);
-        min += quarter;
+        if(isNegative)
+            return {-static_cast<intmax_t>(upperNumerator), static_cast<intmax_t>(upperDenominator)};
+        return {static_cast<intmax_t>(upperNumerator), static_cast<intmax_t>(upperDenominator)};
     }
-    threads.emplace_back(approxRatioThread, num, min, max, std::ref(bests[numThreads-1]), true);
-
-    for(auto& thread : threads)
-        thread.join();
-    int best = 0;
-    for(int i = 1; i < numThreads; ++i)
-        if(std::abs(num - bests[i].value()) < std::abs(num - bests[best].value()))
-            best = i;
-
-    return bests[best];
+    if(isNegative)
+        return {-static_cast<intmax_t>(lowerNumerator), static_cast<intmax_t>(lowerDenominator)};
+    return {static_cast<intmax_t>(lowerNumerator), static_cast<intmax_t>(lowerDenominator)};
 }
 
 
