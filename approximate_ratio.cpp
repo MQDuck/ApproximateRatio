@@ -14,35 +14,11 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef APPROXIMATERATIO_HPP
-#define APPROXIMATERATIO_HPP
+#include "approximate_ratio.h"
 
-
-#include <limits>
-#include <cmath>
-#include <thread>
-#include <vector>
-#include <iostream>
-#include <atomic>
-#include <cstdlib>
-#include <cstring>
-
-struct Ratio
-{
-    intmax_t numerator, denominator;
-
-    inline double value() const
-    {
-        return static_cast<double>(numerator) / static_cast<double>(denominator);
-    }
-
-    friend inline std::ostream& operator<<(std::ostream& os, const Ratio& ratio)
-    {
-        os << ratio.numerator << "/" << ratio.denominator;
-        return os;
-    }
-};
-
+#ifdef __cplusplus
+extern "C"
+#endif
 Ratio approxRatio(double num, const intmax_t max)
 {
     const bool isNegative = num < 0.0;
@@ -85,6 +61,3 @@ Ratio approxRatio(double num, const intmax_t max)
         return {-static_cast<intmax_t>(lowerNumerator), static_cast<intmax_t>(lowerDenominator)};
     return {static_cast<intmax_t>(lowerNumerator), static_cast<intmax_t>(lowerDenominator)};
 }
-
-
-#endif //APPROXIMATERATIO_HPP

@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cmath>
-#include "ApproximateRatio.hpp"
+#include <chrono>
+#include "approximate_ratio.h"
 
 int main()
 {
