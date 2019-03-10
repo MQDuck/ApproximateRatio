@@ -5,8 +5,9 @@
 
 int main()
 {
-    const double num = 3.1202154757;
-    const intmax_t max = 9000000000000000000;
+    const double num = sqrt(2);
+    //const intmax_t max = 9000000000000000000;
+    const intmax_t max = 10000;
 
     auto begin = std::chrono::steady_clock::now();
     Ratio ratio = approxRatio(num, max);

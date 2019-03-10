@@ -6,7 +6,7 @@
 
 void main()
 {
-    Ratio ratio = approxRatio(NUM, 1000);
+    struct Ratio ratio = approxRatio(NUM, 1000);
     printf(
             "%f \u2248 %li/%li = %lf\n",
             NUM,

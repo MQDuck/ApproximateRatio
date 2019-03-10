@@ -21,7 +21,7 @@
 #include <cstdint>
 #include <ostream>
 #else
-#include "stdint.h"
+#include <stdint.h>
 #endif
 
 struct Ratio
@@ -43,14 +43,10 @@ struct Ratio
 };
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+#else
+struct
 #endif
-
-typedef struct Ratio Ratio;
-Ratio approxRatio(double num, const intmax_t max);
-
-#ifdef __cplusplus
-}
-#endif
+Ratio approxRatio(double num, intmax_t max);
 
 #endif //APPROXIMATERATIO_HPP
